@@ -1,3 +1,5 @@
 **/static/images/*
 
 **/__pycache__/*
+
+**/votes.json
