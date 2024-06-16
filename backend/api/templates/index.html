@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Voting</title>
+    <script src="https://unpkg.com/htmx.org@1.6.1"></script>
+</head>
+<body ontouchstart="touchStart(event)" ontouchend="touchEnd(event)">
+    <div id="image-container" >
+        <img id="image" src="" alt="Image">
+    </div>
+    <button id="dislike-button" hx-post="/vote/dislike" hx-swap="none" hx-vals="js:{imageIndex: document.getElementById('image-index').value}">Dislike</button>
+    <button id="like-button" hx-post="/vote/like" hx-swap="none" hx-vals="js:{imageIndex: document.getElementById('image-index').value}">Like</button>
+
+    <form id="image-index-form">
+        <div id="image_index_container" hx-get="/api/image/tag" hx-vals="js:{imageIndex: document.getElementById('image-index').value}" hx-trigger="htmx:afterSwap" hx-target="#image-container" hx-swap="innerHTML">
+            <input type="text" id="image-index" placeholder="" value="" hx-get="/api/image/new_index" hx-swap="innerHTML" hx-target="#image_index_container" hx-trigger="load">
+        </div>
+        <button id="refresher" type="submit" hx-get="/api/image/new_index" hx-swap="innerHTML" hx-target="#image_index_container" hx-trigger="click from:#like-button, click from:#dislike-button">Next</button>
+    </form>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: linear-gradient(to right, hsl(0, 63%, 13%), rgba(12, 51, 12, 0.993));
+        }
+
+        #image-container {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        #image {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        #image-index-form {
+            display: none;
+        }
+
+        @media (pointer: coarse)  {
+            button {
+                display: none;
+            }
+        }
+
+
+        button {
+            margin: 20px auto;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:active {
+            background-color: #0056b3;
+        }
+    </style>
+
+    <script>
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        function touchStart(e) {
+            touchStartX = e.changedTouches[0].screenX;
+        }
+
+        function touchEnd(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }
+
+        function handleSwipe() {
+            if (touchEndX - touchStartX > 50) {
+                document.getElementById('like-button').click();
+            }
+            if (touchStartX - touchEndX > 50) {
+                document.getElementById('dislike-button').click();
+            }
+        }
+        // Fetch the first image on page load
+        // fetch('/image')
+        //     .then(response => response.json())
+        //     .then(data => {
+        //         document.getElementById('image').src = data.image;
+        //     });
+    </script>
+</body>
+</html>

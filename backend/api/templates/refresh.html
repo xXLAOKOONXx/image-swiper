@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Voting</title>
+    <script src="https://unpkg.com/htmx.org@1.6.1"></script>
+</head>
+<body ontouchstart="touchStart(event)" ontouchend="touchEnd(event)">
+  <button id="refresh" hx-post="api/refresh" hx-swap="none">REFRESH</button>
+
+  <style>
+    button {
+            margin: 20px auto;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+  </style>
+</body>
+</html>
