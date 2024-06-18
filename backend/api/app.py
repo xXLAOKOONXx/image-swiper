@@ -6,88 +6,91 @@ import json
 
 app = Flask(__name__)
 
-# Dictionary to store votes for each image
+VOTES_LOCATION = 'votes.json'
 votes = defaultdict(lambda: {'likes': 0, 'dislikes': 0})
 
-if os.path.exists('votes.json'):
-  with open('votes.json', 'r') as file:
+if os.path.exists(VOTES_LOCATION):
+  with open(VOTES_LOCATION, 'r') as file:
     votes = json.load(file)
 
 # List of image URLs
 images = os.listdir(os.path.join(os.path.dirname(__file__), 'static/images'))
-random.shuffle(images)
 
+#region Pages
 
 @app.route('/', methods=['GET'])
-def home():
+def get_home_page():
   '''Returns the home page of the app'''
   return render_template('index.html')
 
 @app.route('/refresh', methods=['GET'])
-def refresh_site():
+def get_refresh_page():
   '''Returns the refresh page of the app'''
   return render_template('refresh.html')
 
 @app.route('/votes', methods=['GET'])
-def get_votes():
-  '''Returns the votes for each image as a JSON object'''
+def get_votes_page():
+  '''
+  Returns the votes for each image as a JSON object
+  
+  Future improvement: This will become a page that displays the votes for each image instead of returning a JSON object
+  '''
   return jsonify(votes)
+
+#endregion
+
+#region API
 
 @app.route('/api/vote/dislike', methods=['POST'])
 def vote_dislike():
   '''
-  Expects a query parameter 'imageIndex' which is the index of the image to vote on
+  Expects a form parameter 'imageUrl' which is the full url of the image to vote on
   Increments the number of dislikes for the image at the given index
   '''
-  current_image_index = request.args.get('imageIndex')
-  image = images[current_image_index]
+  current_image_url = request.form.get('imageUrl')
+  if current_image_url is None:
+    return 'No image URL provided', 400
+  image = current_image_url.split('/')[-1]
   votes[image]['dislikes'] += 1
   # Save votes to a file
-  with open('votes.json', 'w') as file:
+  with open(VOTES_LOCATION, 'w') as file:
     json.dump(votes, file)
-  return '', 200
+  return '', 204
 
 
 @app.route('/api/vote/like', methods=['POST'])
 def vote_like():
   '''
-  Expects a query parameter 'imageIndex' which is the index of the image to vote on
+  Expects a form parameter 'imageUrl' which is the full url of the image to vote on
   Increments the number of likes for the image at the given index
   '''
-  current_image_index = request.args.get('imageIndex')
-  image = images[current_image_index]
+  current_image_url = request.form.get('imageUrl')
+  if current_image_url is None:
+    return 'No image URL provided', 400
+  image = current_image_url.split('/')[-1]
   votes[image]['likes'] += 1
   # Save votes to a file
-  with open('votes.json', 'w') as file:
+  with open(VOTES_LOCATION, 'w') as file:
     json.dump(votes, file)
-  return '', 200
+  return '', 204
 
-@app.route('/api/image/tag', methods=['GET'])
-def get_image_tag():
+@app.route('/api/image/new_url', methods=['GET'])
+def get_new_image_url():
   '''
-  Expects a query parameter 'imageIndex' which is the index of the image to display
-  Returns the image tag for the current image
+  Returns the image URL for a random image
   '''
-  image_index = request.args.get('imageIndex')
-  image_url = f'static/images/{images[int(image_index)]}'
-  return f'<img id="image" src="{image_url}" alt="Image">'
-
-
-@app.route('/api/image/new_index', methods=['GET'])
-def get_image_index():
-  '''
-  Returns html input element with name 'image-index' and value as the random index
-  '''
-  return f'<input type="text" id="image-index" value="{random.randint(0, len(images) - 1)}">'
+  image = random.choice(images)
+  image_url = f'static/images/{image}'
+  return jsonify({'image_url': image_url})
 
 @app.route('/api/refresh', methods=['POST'])
 def refresh():
   '''Refreshes the images internally'''
   global images
   images = os.listdir(os.path.join(os.path.dirname(__file__), 'static/images'))
-  random.shuffle(images)
-  return '', 200
+  return '', 204
 
+#endregion
 
 if __name__ == '__main__':
   app.run(host='0.0.0.0')

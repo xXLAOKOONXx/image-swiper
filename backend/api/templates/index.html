@@ -5,20 +5,24 @@
     <script src="https://unpkg.com/htmx.org@1.6.1"></script>
 </head>
 <body ontouchstart="touchStart(event)" ontouchend="touchEnd(event)">
-    <div id="image-container" >
-        <img id="image" src="" alt="Image">
+    <button id="dislike-button" hx-post="/api/vote/dislike" hx-swap="none" hx-vals="js:{imageUrl: document.getElementById('image').src}">Dislike</button>
+    <div id="image-container">
+        <img id="image" src="" alt="Image" hx-get="/api/image/new_url" hx-trigger="click from:#like-button, click from:#dislike-button, load" hx-swap="none">
     </div>
-    <button id="dislike-button" hx-post="/vote/dislike" hx-swap="none" hx-vals="js:{imageIndex: document.getElementById('image-index').value}">Dislike</button>
-    <button id="like-button" hx-post="/vote/like" hx-swap="none" hx-vals="js:{imageIndex: document.getElementById('image-index').value}">Like</button>
-
-    <form id="image-index-form">
-        <div id="image_index_container" hx-get="/api/image/tag" hx-vals="js:{imageIndex: document.getElementById('image-index').value}" hx-trigger="htmx:afterSwap" hx-target="#image-container" hx-swap="innerHTML">
-            <input type="text" id="image-index" placeholder="" value="" hx-get="/api/image/new_index" hx-swap="innerHTML" hx-target="#image_index_container" hx-trigger="load">
-        </div>
-        <button id="refresher" type="submit" hx-get="/api/image/new_index" hx-swap="innerHTML" hx-target="#image_index_container" hx-trigger="click from:#like-button, click from:#dislike-button">Next</button>
-    </form>
+    <button id="like-button" hx-post="/api/vote/like" hx-swap="none" hx-vals="js:{imageUrl: document.getElementById('image').src}">Like</button>
 
     <style>
+        #dislike-button, #like-button {
+            position: absolute; /* Take the buttons out of the normal flow */
+        }
+        
+        #dislike-button {
+            left: 10px; /* Position the dislike button on the left */
+        }
+        
+        #like-button {
+            right: 10px; /* Position the like button on the right */
+        }
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -33,16 +37,11 @@
         #image-container {
             display: flex;
             justify-content: center;
-            margin-top: 20px;
         }
 
         #image {
             max-width: 100%;
             max-height: 100%;
-        }
-
-        #image-index-form {
-            display: none;
         }
 
         @media (pointer: coarse)  {
@@ -89,12 +88,12 @@
                 document.getElementById('dislike-button').click();
             }
         }
-        // Fetch the first image on page load
-        // fetch('/image')
-        //     .then(response => response.json())
-        //     .then(data => {
-        //         document.getElementById('image').src = data.image;
-        //     });
+        
+        document.getElementById('image').addEventListener('htmx:afterOnLoad', function(event) {
+            var jsonResponse = JSON.parse(event.detail.xhr.responseText);
+            document.getElementById('image').src = jsonResponse.image_url;
+        });
+        
     </script>
 </body>
 </html>
