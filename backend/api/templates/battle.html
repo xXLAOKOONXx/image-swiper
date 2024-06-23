@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Battle</title>
+    <script src="https://unpkg.com/htmx.org@1.6.1"></script>
+</head>
+<body>
+  <div id="images-container">
+    <div id="image1-container">
+      <img class="votable-image" id="image1" src="" alt="Image 1" hx-get="/api/image/new_url" hx-trigger="load, click, click from:#image2" hx-swap="none">
+    </div>
+    <div id="image2-container">
+      <img class="votable-image" id="image2" src="" alt="Image 2" hx-get="/api/image/new_url" hx-trigger="load, click, click from:#image1" hx-swap="none">
+    </div>
+  </div>
+  <div id="image1-win" hx-post="/api/battle/vote" hx-swap="none" hx-vals="js:{'winnerUrl': document.getElementById('image1').src, 'looserUrl': document.getElementById('image2').src}" hx-trigger="click from:#image1"></div>
+  <div id="image2-win" hx-post="/api/battle/vote" hx-swap="none" hx-vals="js:{'winnerUrl': document.getElementById('image2').src, 'looserUrl': document.getElementById('image1').src}" hx-trigger="click from:#image2"></div>
+  <style>
+    body {
+      background-color: grey;
+      margin: 0;
+    }
+
+    #images-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    #image1-container,
+    #image2-container {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .votable-image {
+      max-height: 100%;
+      max-width: 100%;
+    }
+    @media (orientation: landscape) {
+      #images-container {
+        flex-direction: row;
+      }
+      .votable-image {
+        max-height: 100vh;
+      }
+    }
+    @media (orientation: portrait) {
+      #images-container {
+        flex-direction: column;
+      }
+      .votable-image {
+        max-width: 100vw;
+      }
+    }
+  </style>
+  <script>
+
+    var votableImages = document.getElementsByClassName('votable-image');
+    for (var i = 0; i < votableImages.length; i++) {
+      votableImages[i].addEventListener('htmx:afterOnLoad', function(event) {
+        var jsonResponse = JSON.parse(event.detail.xhr.responseText);
+        event.target.src = jsonResponse.image_url;
+      });
+    }
+  </script>
+</body>
